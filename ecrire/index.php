@@ -104,7 +104,10 @@ elseif (isset($GLOBALS['meta']["admin"])) {
 	}
 }
 // si nom pas plausible, prendre le script par defaut
-elseif (!preg_match(',^[a-z_][0-9a-z_]*$,i', $exec)) $exec = "accueil";
+elseif (!preg_match(',^[a-z_][0-9a-z_]*$,i', $exec)) {
+	$exec = "accueil";
+	set_request('exec', $exec);
+}
 
 // Verification des plugins
 // (ne pas interrompre une restauration ou un upgrade)
@@ -165,7 +168,4 @@ if ($debug) {
 	$GLOBALS['debug_objets'][$var_mode_affiche][$var_mode_objet . 'tout'] = ($var_mode_affiche== 'validation' ? $page['texte'] :"");
 	echo erreur_squelette();
 }
-if (isset($tableau_des_erreurs) AND count($tableau_des_erreurs) AND $affiche_boutons_admin)
-	echo affiche_erreurs_page($tableau_des_erreurs);
-
 ?>

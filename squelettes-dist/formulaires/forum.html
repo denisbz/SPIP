@@ -142,8 +142,9 @@ if (window.jQuery)(function($){
 		.val(a);
 		$.cookie('spip_contenu_formulaire_#ENV{_sign}', null);
 	}
-	$('#formulaire_forum form')
-	.bind('submit', function() {
+	/* virer le cookie a la validation finale du message */
+	$('input#EVAL{chr(91)}name=confirmer_previsu_forum#EVAL{chr(93)}')
+	.live('click', function(e) {
 		saveauto = false;
 	});
 	$(window)
@@ -154,6 +155,9 @@ if (window.jQuery)(function($){
 				$.cookie('spip_contenu_formulaire_#ENV{_sign}', s);
 			else
 				$.cookie('spip_contenu_formulaire_#ENV{_sign}', null);
+		}else{
+			/* on vide le champs texte après le submit car refuser_traiter_formulaire_ajax(); va reposter le formulaire, et donc reposer un cookie car saveauto sera false la seconde fois. */
+			$('#formulaire_forum textarea#EVAL{chr(91)}name=texte#EVAL{chr(93)}').val('');
 		}
 	});
 }(jQuery));

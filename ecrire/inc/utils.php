@@ -405,7 +405,8 @@ function _L($text, $args=array(), $class=NULL) {
 		}
 		// Si des variables n'ont pas ete inserees, le signaler
 		// (chaines de langues pas a jour)
-		if ($args) spip_log("$f:  variables inutilisees " . join(', ', array_keys($args)));
+		// NOTE: c'est du debug, gere comme tel pour SPIP >= 2.3
+		## if ($args) spip_log("$f:  variables inutilisees " . join(', ', array_keys($args)));
 	}
 
 	if ($GLOBALS['test_i18n'] AND $class===NULL)
@@ -1056,12 +1057,14 @@ function generer_url_prive($script, $args="", $no_entities=false) {
 function generer_form_ecrire($script, $corps, $atts='', $submit='') {
 	global $spip_lang_right;
 
+	$script1 = array_shift(explode('&', $script));
+
 	return "<form action='"
 	. ($script ? generer_url_ecrire($script) : '')
 	. "' "
 	. ($atts ? $atts : " method='post'")
 	.  "><div>\n"
-	. "<input type='hidden' name='exec' value='$script' />"
+	. "<input type='hidden' name='exec' value='$script1' />"
 	. $corps
 	. (!$submit ? '' :
 	     ("<div style='text-align: $spip_lang_right'><input type='submit' value='$submit' /></div>"))
@@ -1324,8 +1327,15 @@ function spip_initialisation_core($pi=NULL, $pa=NULL, $ti=NULL, $ta=NULL) {
 			// si jamais c'est de la mutu avec sous rep, on est perdu si on se fie
 			// a spip.php qui est a la racine du spip, et vue qu'on sait pas se reperer
 			// s'en remettre a l'adresse du site. alea jacta est.
-			OR $ti!==_NOM_TEMPORAIRES_INACCESSIBLES)
-			$uri_ref = (isset($GLOBALS['meta']['adresse_site'])?parse_url($GLOBALS['meta']['adresse_site'],PHP_URL_PATH).'/':'');
+			OR $ti!==_NOM_TEMPORAIRES_INACCESSIBLES){
+
+			if (isset($GLOBALS['meta']['adresse_site'])) {
+				$uri_ref = parse_url($GLOBALS['meta']['adresse_site']);
+				$uri_ref = $uri_ref['path'].'/';
+			}
+		  else
+			  $uri_ref = "";
+		}
 		if (!$uri OR !$uri_ref)
 			$GLOBALS['profondeur_url'] = 0;
 		else {

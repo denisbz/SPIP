@@ -16,10 +16,13 @@ if (!defined('_ECRIRE_INC_VERSION')) return;
 
 // http://doc.spip.org/@req_mysql_dist
 function req_mysql_dist($host, $port, $login, $pass, $db='', $prefixe='') {
-	charger_php_extension('mysql');
+	if (!charger_php_extension('mysql')) return false;
 	if ($port > 0) $host = "$host:$port";
 	$link = @mysql_connect($host, $login, $pass, true);
-	if (!$link) return false;
+	if (!$link) {
+		spip_log('Echec mysql_connect. Erreur : ' . mysql_error(),'mysql');
+		return false;
+	}
 	$last = '';
 	if (!$db) {
 		$ok = $link;
@@ -299,7 +302,10 @@ function traite_query($query, $db='', $prefixe='') {
 
 // http://doc.spip.org/@spip_mysql_selectdb
 function spip_mysql_selectdb($db) {
-	return mysql_select_db($db);
+	$ok = mysql_select_db($db);
+	if (!$ok)
+		spip_log('Echec mysql_selectdb. Erreur : ' . mysql_error(),'mysql');
+	return $ok;
 }
 
 
@@ -391,14 +397,14 @@ function spip_mysql_create_view($nom, $query_select, $serveur='',$requeter=true)
 function spip_mysql_drop_table($table, $exist='', $serveur='',$requeter=true)
 {
 	if ($exist) $exist =" IF EXISTS";
-	return spip_mysql_query("DROP TABLE$exist $table", $serveur, $requeter);
+	return spip_mysql_query("DROP TABLE$exist `$table`", $serveur, $requeter);
 }
 
 // supprime une vue 
 // http://doc.spip.org/@spip_mysql_drop_view
 function spip_mysql_drop_view($view, $exist='', $serveur='',$requeter=true) {
 	if ($exist) $exist =" IF EXISTS";
-	return spip_mysql_query("DROP VIEW$exist $view", $serveur, $requeter);
+	return spip_mysql_query("DROP VIEW$exist `$view`", $serveur, $requeter);
 }
 
 // http://doc.spip.org/@spip_mysql_showbase
@@ -410,7 +416,7 @@ function spip_mysql_showbase($match, $serveur='',$requeter=true)
 // http://doc.spip.org/@spip_mysql_repair
 function spip_mysql_repair($table, $serveur='',$requeter=true)
 {
-	return spip_mysql_query("REPAIR TABLE $table", $serveur, $requeter);
+	return spip_mysql_query("REPAIR TABLE `$table`", $serveur, $requeter);
 }
 
 // Recupere la definition d'une table ou d'une vue MySQL
@@ -517,7 +523,7 @@ function spip_mysql_countsel($from = array(), $where = array(),
 // mais a l'install la globale n'est pas encore completement definie
 // http://doc.spip.org/@spip_mysql_error
 function spip_mysql_error($query='', $serveur='',$requeter=true) {
-	$link = $GLOBALS['connexions'][$serveur ? $serveur : 0]['link'];
+	$link = $GLOBALS['connexions'][$serveur ? strtolower($serveur) : 0]['link'];
 	$s = $link ? mysql_error($link) : mysql_error();
 	if ($s) spip_log("$s - $query", 'mysql');
 	return $s;

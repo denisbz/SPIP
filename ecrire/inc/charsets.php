@@ -145,7 +145,11 @@ function plage_punct_unicode() {
 // http://doc.spip.org/@corriger_caracteres_windows
 function corriger_caracteres_windows($texte, $charset='AUTO', $charset_cible='unicode') {
 	static $trans;
-
+	
+	if (is_array($texte)) {
+		return array_map('corriger_caracteres_windows', $texte);
+	}
+	
 	if ($charset=='AUTO') $charset = $GLOBALS['meta']['charset'];
 	if ($charset == 'utf-8') {
 		$p = chr(194);
@@ -770,7 +774,7 @@ $GLOBALS['CHARSET'] = Array();
 // dans les preg_replace pour ne pas casser certaines lettres accentuees :
 // en utf-8 chr(195).chr(160) = a` alors qu'en iso-latin chr(160) = nbsp
 if (!isset($GLOBALS['meta']['pcre_u'])
-OR isset($_GET['var_mode'])) {
+  OR (isset($_GET['var_mode']) AND !isset($_GET['var_profile']))) {
 	include_spip('inc/meta');
 	ecrire_meta('pcre_u',
 		$u = ($GLOBALS['meta']['charset'] == 'utf-8'

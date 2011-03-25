@@ -344,6 +344,10 @@ function filtrer_entites($texte) {
 function supprimer_caracteres_illegaux($texte) {
 	static $from = "\x0\x1\x2\x3\x4\x5\x6\x7\x8\xB\xC\xE\xF\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F";
 	static $to = null;
+	
+	if (is_array($texte)) {
+		return array_map('supprimer_caracteres_illegaux', $texte);
+	}
 	if (!$to) $to = str_repeat('-', strlen($from));
 	return strtr($texte, $from, $to);
 }
@@ -1312,11 +1316,10 @@ function extraire_multi($letexte, $lang=null, $echappe_span=false) {
 				$l = key($trads);
 				$trad = $trads[$l];
 				$typographie = charger_fonction(lang_typo($l), 'typographie');
-				$trad = $typographie($trad);
+				$trad = traiter_retours_chariots($typographie($trad));
 				$trad = explode("\n", $trad);
 				foreach($trad as $i => $ligne) {
 					if (strlen($ligne)) {
-						$e = true;
 						$ligne = code_echappement($ligne, 'multi');
 						$ligne = str_replace("'", '"', inserer_attribut($ligne, 'lang', $l));
 						if (lang_dir($l) !== lang_dir($lang))
@@ -1807,7 +1810,7 @@ function form_hidden($action) {
 			.'"'
 			. (is_null($val)
 				? ''
-				: ' value="'.entites_html($val).'"'
+				: ' value="'.str_replace("'","&#39;",entites_html($val)).'"'
 				)
 			. ' type="hidden" />';
 	}
